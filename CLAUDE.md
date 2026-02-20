@@ -27,8 +27,7 @@ NO gradients — background is solid, no blobs, no linear/radial-gradient anywhe
 
 ## API
 
-Calls `/api/analyze` (Vercel serverless function). Key lives in Vercel env var `ANTHROPIC_API_KEY`.
-No user-facing API key input. Model: `claude-sonnet-4-20250514` with vision. Returns JSON-only feng shui analysis.
+Rule-based client-side analysis. No API calls.
 
 ## Mobile Quirks
 

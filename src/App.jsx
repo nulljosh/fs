@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useMemo } from 'react'
 
 const BAGUA = {
   North:     { element: 'Water', area: 'Career & Life Path' },
@@ -13,6 +13,113 @@ const BAGUA = {
 const EL_COLORS = { Wood: '#22c55e', Fire: '#ef4444', Earth: '#f59e0b', Metal: '#94a3b8', Water: '#60a5fa' }
 const ROOM_TYPES = ['Living Room', 'Bedroom', 'Office', 'Kitchen', 'Dining Room', 'Bathroom', 'Entryway']
 const GOALS = ['Attract Wealth', 'Improve Relationships', 'Boost Career', 'Enhance Health', 'Increase Creativity', 'Find Peace & Calm', 'Improve Sleep']
+
+// Element cycle: generating (Wood→Fire→Earth→Metal→Water→Wood)
+// and controlling (Wood→Earth→Water→Fire→Metal→Wood)
+const GENERATES = { Wood: 'Fire', Fire: 'Earth', Earth: 'Metal', Metal: 'Water', Water: 'Wood' }
+const CONTROLS  = { Wood: 'Earth', Fire: 'Metal', Earth: 'Water', Metal: 'Wood', Water: 'Fire' }
+
+const GOAL_ELEMENT = {
+  'Attract Wealth': 'Wood', 'Improve Relationships': 'Earth', 'Boost Career': 'Water',
+  'Enhance Health': 'Wood', 'Increase Creativity': 'Metal', 'Find Peace & Calm': 'Water', 'Improve Sleep': 'Metal',
+}
+
+const ROOM_ELEMENT = {
+  'Living Room': 'Fire', 'Bedroom': 'Earth', 'Office': 'Metal',
+  'Kitchen': 'Fire', 'Dining Room': 'Earth', 'Bathroom': 'Water', 'Entryway': 'Wood',
+}
+
+const ROOM_ISSUES = {
+  'Living Room': [
+    { severity: 'moderate', title: 'Sofa placement', description: 'Seating that cannot see the main entrance weakens commanding position and reduces security.', fix: 'Angle the primary seat to face the door while maintaining conversation flow.' },
+    { severity: 'minor', title: 'Sharp corners toward seating', description: 'Furniture edges pointing at seating areas create cutting chi (sha qi).', fix: 'Soften corners with plants or rounded throw pillows.' },
+  ],
+  'Bedroom': [
+    { severity: 'moderate', title: 'Bed not in command position', description: 'Without a clear view of the door, restful sleep and sense of safety are reduced.', fix: 'Move the bed so you can see the door without being directly in line with it.' },
+    { severity: 'minor', title: 'Mirrors facing the bed', description: 'Reflections during sleep disturb chi and create restlessness.', fix: 'Cover or reposition mirrors so they do not face the sleeping area.' },
+  ],
+  'Office': [
+    { severity: 'critical', title: 'Desk facing a wall', description: 'Working with your back to the room scatters focus and blocks career chi.', fix: 'Turn the desk to face into the room, ideally with a wall behind you.' },
+    { severity: 'minor', title: 'Clutter on desk surface', description: 'Accumulated objects block mental clarity and slow productivity.', fix: 'Keep only active items on the desk surface; file or remove the rest.' },
+  ],
+  'Kitchen': [
+    { severity: 'moderate', title: 'Stove and sink too close', description: 'Fire and Water elements in direct conflict create tension and health imbalances.', fix: 'Place a Wood-element object (plant or green item) between them to mediate.' },
+    { severity: 'minor', title: 'Hidden stove from entrance', description: 'A stove you cannot see when entering reduces prosperity chi.', fix: 'Hang a small mirror near the stove so it is reflected toward the entrance.' },
+  ],
+  'Dining Room': [
+    { severity: 'minor', title: 'Chairs with backs to door', description: 'Guests seated facing away from the entrance feel unsettled, disrupting nourishing energy.', fix: 'Arrange seating so the host faces the entrance.' },
+    { severity: 'minor', title: 'Overhead lighting too harsh', description: 'Bright direct light suppresses relaxed, nourishing chi during meals.', fix: 'Add a dimmer or switch to warm-toned bulbs.' },
+  ],
+  'Bathroom': [
+    { severity: 'moderate', title: 'Toilet lid left open', description: 'Open drains pull wealth chi down and out of the home.', fix: 'Keep the toilet lid closed and the bathroom door shut when not in use.' },
+    { severity: 'minor', title: 'Drain energy loss', description: 'Water draining out symbolizes energy and resources leaving.', fix: 'Add a potted plant or earth-toned decor to anchor chi in the space.' },
+  ],
+  'Entryway': [
+    { severity: 'critical', title: 'Clutter at entrance', description: 'Blocked or cluttered entryways prevent chi from flowing freely into the home.', fix: 'Clear shoes, bags, and objects from the entry. Add a small console table to organize.' },
+    { severity: 'minor', title: 'Dim lighting', description: 'Dark entryways suppress incoming energy and opportunity.', fix: 'Add brighter lighting or a mirror to amplify light near the entrance.' },
+  ],
+}
+
+const GOAL_ACTIONS = {
+  'Attract Wealth':        ['Activate the Southeast corner with a jade plant or amethyst cluster.', 'Add a small water feature on the North wall to feed Wood energy.', 'Keep the wealth corner clutter-free and well-lit.'],
+  'Improve Relationships': ['Place rose quartz or paired objects in the Southwest corner.', 'Use earth tones (terracotta, sand, ochre) in shared spaces.', 'Remove single-subject art; favour imagery showing pairs or community.'],
+  'Boost Career':          ['Add a water feature or dark blue accent in the North area.', 'Hang a metal wind chime near the front door to activate career chi.', 'Ensure your workspace faces the room, not a wall.'],
+  'Enhance Health':        ['Bring live plants into the East area to strengthen Wood energy.', 'Maximise natural light; replace burnt-out bulbs immediately.', 'Remove dead or dried plants and replace with healthy ones.'],
+  'Increase Creativity':   ['Add white or metallic accents in the West corner.', 'Keep a dedicated creative surface clear and ready to use.', 'Hang round or oval-shaped art in the West to activate Metal chi.'],
+  'Find Peace & Calm':     ['Use soft earth and water tones throughout — sage, slate, cream.', 'Remove or cover screens in the bedroom.', 'Add a small tabletop fountain to bring calming Water energy.'],
+  'Improve Sleep':         ['Ensure the bed headboard is against a solid wall with no window directly behind.', 'Remove electronic devices or cover them at night.', 'Use blackout curtains and keep the room cool and clutter-free.'],
+}
+
+function buildAnalysis(doorDir, roomType, goal) {
+  const doorEl  = BAGUA[doorDir]?.element
+  const goalEl  = GOAL_ELEMENT[goal]
+  const roomEl  = ROOM_ELEMENT[roomType]
+
+  // Score: base 55, +10 if door element generates goal element, +8 if room suits goal, -5 conflicts
+  let score = 55
+  if (doorEl && goalEl) {
+    if (GENERATES[doorEl] === goalEl) score += 12
+    else if (doorEl === goalEl) score += 8
+    else if (CONTROLS[doorEl] === goalEl) score -= 8
+  }
+  if (roomEl && goalEl) {
+    if (GENERATES[roomEl] === goalEl || roomEl === goalEl) score += 8
+    else if (CONTROLS[roomEl] === goalEl) score -= 5
+  }
+  score = Math.min(92, Math.max(38, score))
+
+  const energyFlow = score >= 72 ? 'Good' : score >= 50 ? 'Moderate' : 'Blocked'
+  const commanding_position = score >= 68 ? 'Yes' : score >= 50 ? 'Partial' : 'No'
+
+  const baguaInfo = BAGUA[doorDir] || { element: 'Earth', area: 'Balance' }
+  const summary = `Your ${roomType.toLowerCase()} has a ${doorDir}-facing entrance, activating ${baguaInfo.element} energy aligned with ${baguaInfo.area}. ${
+    energyFlow === 'Good'
+      ? `Chi flows well through this space — your goal to ${goal.toLowerCase()} is strongly supported by the current elemental alignment.`
+      : energyFlow === 'Moderate'
+      ? `Energy flow is moderate. Addressing the issues below will meaningfully strengthen chi and better support your goal to ${goal.toLowerCase()}.`
+      : `Chi is currently blocked. The elemental tensions between your entrance direction and goal need attention — the actions below will help redirect energy flow.`
+  }`
+
+  const issues = ROOM_ISSUES[roomType] || []
+
+  // Element balance: weight toward door + goal elements
+  const base = { Wood: 18, Fire: 18, Earth: 18, Metal: 18, Water: 18 }
+  if (doorEl) base[doorEl] = (base[doorEl] || 0) + 14
+  if (goalEl) base[goalEl] = (base[goalEl] || 0) + 8
+  if (roomEl) base[roomEl] = (base[roomEl] || 0) + 6
+  const total = Object.values(base).reduce((a, b) => a + b, 0)
+  const elementBalance = Object.fromEntries(Object.entries(base).map(([k, v]) => [k, Math.round(v / total * 100)]))
+
+  return {
+    overallScore: score,
+    energyFlow,
+    commanding_position,
+    summary,
+    issues,
+    priorityActions: GOAL_ACTIONS[goal] || [],
+    elementBalance,
+  }
+}
 
 const DEMO = {
   doorDir: 'Southeast', roomType: 'Living Room', goal: 'Attract Wealth',
@@ -179,42 +286,9 @@ export default function App() {
   const analyze = async () => {
     if (!images.length || !doorDir || !roomType || !goal) return
     setLoading(true); setError(null); setAnalysis(null); setIsDemo(false)
-    try {
-      const resolvedImages = await Promise.all(images.map(async (img) => {
-        if (img.base64) return img
-        const resp = await fetch(img.url)
-        const blob = await resp.blob()
-        const base64 = await new Promise((resolve, reject) => {
-          const r = new FileReader()
-          r.onload = () => resolve(r.result.split(',')[1])
-          r.onerror = reject
-          r.readAsDataURL(blob)
-        })
-        return { ...img, base64, mediaType: blob.type || 'image/jpeg' }
-      }))
-      let res
-      try {
-        res = await fetch('/api/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            images: resolvedImages.map((img) => ({ base64: img.base64, mediaType: img.mediaType })),
-            doorDir, roomType, goal,
-          }),
-        })
-      } catch { throw new Error('Network error — check your internet connection.') }
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}))
-        if (res.status === 429) throw new Error('Rate limited — wait a moment and retry.')
-        if (res.status === 413) throw new Error('Images too large — try fewer or smaller photos.')
-        if (res.status >= 500) throw new Error('Server error — try again shortly.')
-        throw new Error(errData?.error || `Error ${res.status}`)
-      }
-      const parsed = await res.json()
-      if (typeof parsed.overallScore !== 'number') throw new Error('Malformed response — try again.')
-      setAnalysis(parsed)
-    } catch (err) { setError(err.message || 'Analysis failed — try again.')
-    } finally { setLoading(false) }
+    await new Promise((r) => setTimeout(r, 200))
+    setAnalysis(buildAnalysis(doorDir, roomType, goal))
+    setLoading(false)
   }
 
   const bagua = BAGUA[doorDir]
