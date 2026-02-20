@@ -137,8 +137,8 @@ export default function App() {
     accent: '#0071e3',
     headerBg: dark ? 'rgba(18,16,26,0.8)' : 'rgba(248,243,236,0.8)',
     label: dark ? 'rgba(240,235,220,0.3)' : 'rgba(42,32,15,0.3)',
-    demoBg: dark ? 'rgba(100,80,200,0.1)' : 'rgba(160,120,60,0.07)',
-    demoBorder: dark ? 'rgba(120,100,220,0.25)' : 'rgba(160,120,60,0.2)',
+    demoBg: dark ? 'rgba(0,113,227,0.08)' : 'rgba(160,120,60,0.07)',
+    demoBorder: dark ? 'rgba(0,113,227,0.2)' : 'rgba(160,120,60,0.2)',
     errorBg: dark ? 'rgba(239,68,68,0.1)' : 'rgba(239,68,68,0.06)',
     errorBorder: dark ? 'rgba(239,68,68,0.3)' : 'rgba(239,68,68,0.25)',
     issueBg: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
@@ -265,7 +265,7 @@ export default function App() {
         @keyframes fadeSlide { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
         *{box-sizing:border-box}
         body{margin:0;padding:0}
-        select option{background:${dark ? '#1e1a2e' : '#faf6ee'};color:${dark ? '#f0ebe0' : '#2a2010'}}
+        select option{background:${dark ? '#18181b' : '#faf6ee'};color:${dark ? '#f0ebe0' : '#2a2010'}}
         @media (min-width: 768px) {
           .fs-container { max-width: 600px; padding: 28px 24px; }
         }
@@ -333,7 +333,7 @@ export default function App() {
               <div>
                 <div style={{ fontSize: 14, fontWeight: 600, color: c.text, marginBottom: 4, fontFamily: "Georgia, serif" }}>New here?</div>
                 <div style={{ fontSize: 13, color: c.textMid, marginBottom: 12, lineHeight: 1.5 }}>See a full analysis example — no photo or API key needed.</div>
-                <button onClick={loadDemo} style={{ padding: '10px 20px', borderRadius: 10, border: `1px solid ${c.demoBorder}`, background: c.demoBg, color: dark ? 'rgba(180,160,240,0.9)' : 'rgba(100,70,180,0.85)', fontSize: 13, fontWeight: 600, cursor: 'pointer', touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', fontFamily: 'inherit' }}>
+                <button onClick={loadDemo} style={{ padding: '10px 20px', borderRadius: 10, border: `1px solid ${c.demoBorder}`, background: c.demoBg, color: '#0071e3', fontSize: 13, fontWeight: 600, cursor: 'pointer', touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', fontFamily: 'inherit' }}>
                   View Demo Analysis
                 </button>
               </div>
@@ -344,7 +344,7 @@ export default function App() {
         {/* Demo badge */}
         {isDemo && (
           <div style={{ ...glass, padding: '10px 16px', marginBottom: 12, border: `1px solid ${c.demoBorder}`, background: c.demoBg, display: 'flex', alignItems: 'center', justifyContent: 'space-between', animation: 'fadeSlide 0.3s ease' }}>
-            <span style={{ fontSize: 13, color: dark ? 'rgba(180,160,240,0.85)' : 'rgba(100,70,180,0.8)', fontWeight: 500 }}>Demo — pre-loaded example analysis</span>
+            <span style={{ fontSize: 13, color: '#0071e3', fontWeight: 500 }}>Demo — pre-loaded example analysis</span>
             <button onClick={reset} style={{ background: 'none', border: 'none', color: c.textSub, fontSize: 13, cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>Clear</button>
           </div>
         )}
@@ -366,7 +366,7 @@ export default function App() {
             </div>
           )}
           <input ref={fileRef} type="file" accept="image/*,image/heic" capture="environment" multiple onChange={(e) => addImages(e.target.files)} style={{ display: 'none' }}/>
-          <button onClick={() => fileRef.current?.click()} style={{ width: '100%', padding: '15px 0', borderRadius: 12, border: `1.5px dashed ${dark ? 'rgba(140,120,240,0.4)' : 'rgba(140,100,60,0.3)'}`, background: dark ? 'rgba(120,100,200,0.07)' : 'rgba(180,140,80,0.06)', color: dark ? 'rgba(160,140,240,0.8)' : 'rgba(120,80,30,0.7)', fontSize: 14, fontWeight: 500, cursor: 'pointer', touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', fontFamily: 'inherit', letterSpacing: 0.2 }}>
+          <button onClick={() => fileRef.current?.click()} style={{ width: '100%', padding: '15px 0', borderRadius: 12, border: `1.5px dashed ${dark ? 'rgba(255,255,255,0.18)' : 'rgba(140,100,60,0.3)'}`, background: dark ? 'rgba(255,255,255,0.04)' : 'rgba(180,140,80,0.06)', color: c.textMid, fontSize: 14, fontWeight: 500, cursor: 'pointer', touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', fontFamily: 'inherit', letterSpacing: 0.2 }}>
             {images.length === 0 ? 'Take photo or upload' : `Add more (${images.length}/5)`}
           </button>
         </div>
@@ -402,7 +402,7 @@ export default function App() {
         </div>
 
         {/* Analyze button */}
-        <button onClick={analyze} disabled={!canAnalyze} style={{ width: '100%', padding: '17px 0', borderRadius: 14, border: 'none', background: canAnalyze ? c.accent : (dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.08)'), color: canAnalyze ? '#fff' : c.textSub, fontSize: 16, fontWeight: 600, cursor: canAnalyze ? 'pointer' : 'default', marginBottom: 14, touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', transition: 'opacity 0.2s', boxShadow: canAnalyze ? '0 4px 24px rgba(100,160,255,0.3)' : 'none', fontFamily: "Georgia, serif", letterSpacing: 0.3 }}>
+        <button onClick={analyze} disabled={!canAnalyze} style={{ width: '100%', padding: '17px 0', borderRadius: 14, border: 'none', background: canAnalyze ? c.accent : (dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.08)'), color: canAnalyze ? '#fff' : c.textSub, fontSize: 16, fontWeight: 600, cursor: canAnalyze ? 'pointer' : 'default', marginBottom: 14, touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', transition: 'opacity 0.2s', boxShadow: canAnalyze ? '0 4px 20px rgba(0,113,227,0.3)' : 'none', fontFamily: "Georgia, serif", letterSpacing: 0.3 }}>
           {loading ? (
             <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
               <span style={{ width: 18, height: 18, border: '2.5px solid rgba(255,255,255,0.35)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }}/>
