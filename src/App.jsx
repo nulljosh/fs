@@ -104,8 +104,6 @@ export default function App() {
   const [error, setError] = useState(null)
   const [analysis, setAnalysis] = useState(DEMO.analysis)
   const [isDemo, setIsDemo] = useState(true)
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem('fs_api_key') || '')
-  const [showKeyInput, setShowKeyInput] = useState(false)
   const fileRef = useRef(null)
 
   const toggleDark = () => {
@@ -178,11 +176,8 @@ export default function App() {
     setAnalysis(null); setImages([]); setDoorDir(''); setRoomType(''); setGoal(''); setError(null); setIsDemo(false)
   }
 
-  const saveKey = (k) => { const t = k.trim(); setApiKey(t); localStorage.setItem('fs_api_key', t); setShowKeyInput(false) }
-
   const analyze = async () => {
     if (!images.length || !doorDir || !roomType || !goal) return
-    if (!apiKey) { setShowKeyInput(true); return }
     setLoading(true); setError(null); setAnalysis(null); setIsDemo(false)
     try {
       const resolvedImages = await Promise.all(images.map(async (img) => {
@@ -199,41 +194,23 @@ export default function App() {
       }))
       let res
       try {
-        res = await fetch('https://api.anthropic.com/v1/messages', {
+        res = await fetch('/api/analyze', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json', 'x-api-key': apiKey,
-            'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514', max_tokens: 1000,
-            system: `You are a feng shui master. Analyze room photos and respond ONLY in valid JSON:
-{"overallScore":number,"energyFlow":"Good|Moderate|Blocked","commanding_position":"Yes|No|Partial",
-"summary":"2-3 sentences","issues":[{"severity":"critical|moderate|minor","title":"string",
-"description":"string","fix":"string"}],"priorityActions":["string","string","string"],
-"elementBalance":{"Wood":number,"Fire":number,"Earth":number,"Metal":number,"Water":number}}`,
-            messages: [{ role: 'user', content: [
-              ...resolvedImages.map((img) => ({ type: 'image', source: { type: 'base64', media_type: img.mediaType, data: img.base64 } })),
-              { type: 'text', text: `Analyze this ${roomType}. Door faces ${doorDir}. Goal: ${goal}. JSON only.` }
-            ]}]
-          })
+            images: resolvedImages.map((img) => ({ base64: img.base64, mediaType: img.mediaType })),
+            doorDir, roomType, goal,
+          }),
         })
       } catch { throw new Error('Network error — check your internet connection.') }
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}))
-        if (res.status === 401) throw new Error('Invalid API key.')
         if (res.status === 429) throw new Error('Rate limited — wait a moment and retry.')
         if (res.status === 413) throw new Error('Images too large — try fewer or smaller photos.')
-        if (res.status >= 500) throw new Error('Anthropic API is down — try again shortly.')
-        throw new Error(errData?.error?.message || `API error ${res.status}`)
+        if (res.status >= 500) throw new Error('Server error — try again shortly.')
+        throw new Error(errData?.error || `Error ${res.status}`)
       }
-      const data = await res.json()
-      if (!data.content?.length) throw new Error('Empty response from API.')
-      const text = data.content.map((c) => c.text || '').join('').trim()
-      const clean = text.replace(/```json|```/g, '').trim()
-      if (!clean) throw new Error('No analysis returned — try again.')
-      let parsed
-      try { parsed = JSON.parse(clean) } catch { throw new Error('Could not parse response — try again.') }
+      const parsed = await res.json()
       if (typeof parsed.overallScore !== 'number') throw new Error('Malformed response — try again.')
       setAnalysis(parsed)
     } catch (err) { setError(err.message || 'Analysis failed — try again.')
@@ -287,23 +264,6 @@ export default function App() {
           </button>
         </div>
       </div>
-
-      {/* API Key Modal */}
-      {showKeyInput && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setShowKeyInput(false)}>
-          <div style={{ ...glass, padding: 24, width: '100%', maxWidth: 360 }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ fontSize: 16, fontWeight: 600, color: c.text, marginBottom: 8, fontFamily: "Georgia, serif" }}>Anthropic API Key</div>
-            <div style={{ fontSize: 13, color: c.textMid, marginBottom: 16, lineHeight: 1.5 }}>Stored locally in your browser. Never sent anywhere except Anthropic.</div>
-            <input autoFocus id="apikey-input" type="password" defaultValue={apiKey} placeholder="sk-ant-..."
-              onKeyDown={(e) => e.key === 'Enter' && saveKey(e.target.value)}
-              style={{ ...selectStyle, marginBottom: 12, borderRadius: 12, padding: '13px 16px' }}/>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => setShowKeyInput(false)} style={{ flex: 1, padding: '12px 0', borderRadius: 12, border: `1px solid ${c.btnSecBorder}`, background: c.btnSecBg, fontSize: 15, color: c.btnSecText, cursor: 'pointer', fontFamily: 'inherit' }}>Cancel</button>
-              <button onClick={() => saveKey(document.getElementById('apikey-input').value)} style={{ flex: 1, padding: '12px 0', borderRadius: 12, border: 'none', background: c.accent, fontSize: 15, color: '#fff', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Save</button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Content */}
       <div className="fs-container" style={{ position: 'relative', zIndex: 1, padding: '20px 16px', maxWidth: 480, margin: '0 auto', paddingBottom: 'max(32px, env(safe-area-inset-bottom))' }}>
