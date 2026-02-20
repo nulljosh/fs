@@ -53,14 +53,6 @@ const SketchCompass = ({ dark }) => (
   </svg>
 )
 
-const SketchLeaf = ({ dark }) => (
-  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke={dark ? 'rgba(100,220,130,0.3)' : 'rgba(30,100,50,0.2)'} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.2">
-    <path d="M14 24 C14 24 6 18 6.5 10 C6.5 5 11 3 14 3 C17 3 21.5 5 21.5 10 C22 18 14 24 14 24Z"/>
-    <path d="M14 24 C14 18 14 12 14 4" strokeWidth="0.8" opacity="0.6"/>
-    <path d="M14 16 C11 14 9 12 8 10" strokeWidth="0.7" opacity="0.5"/>
-    <path d="M14 13 C17 11 19 9 20 8" strokeWidth="0.7" opacity="0.5"/>
-  </svg>
-)
 
 const SketchBagua = ({ dark }) => (
   <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke={dark ? 'rgba(200,170,240,0.3)' : 'rgba(80,60,120,0.15)'} strokeLinecap="round" strokeWidth="1.5">
@@ -104,14 +96,14 @@ export default function App() {
     if (saved !== null) return saved === 'true'
     return window.matchMedia('(prefers-color-scheme: dark)').matches
   })
-  const [images, setImages] = useState([])
-  const [doorDir, setDoorDir] = useState('')
-  const [roomType, setRoomType] = useState('')
-  const [goal, setGoal] = useState('')
+  const [images, setImages] = useState(DEMO.images.map((img) => ({ url: img.url, base64: null, mediaType: 'image/jpeg', demoLabel: img.label })))
+  const [doorDir, setDoorDir] = useState(DEMO.doorDir)
+  const [roomType, setRoomType] = useState(DEMO.roomType)
+  const [goal, setGoal] = useState(DEMO.goal)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [analysis, setAnalysis] = useState(null)
-  const [isDemo, setIsDemo] = useState(false)
+  const [analysis, setAnalysis] = useState(DEMO.analysis)
+  const [isDemo, setIsDemo] = useState(true)
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('fs_api_key') || '')
   const [showKeyInput, setShowKeyInput] = useState(false)
   const fileRef = useRef(null)
@@ -147,7 +139,6 @@ export default function App() {
     btnSecBorder: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)',
     btnSecText: dark ? 'rgba(240,235,220,0.45)' : 'rgba(42,32,15,0.45)',
     divider: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
-    keyBtnColor: apiKey ? '#22c55e' : (dark ? 'rgba(240,235,220,0.4)' : 'rgba(42,32,15,0.4)'),
     keyBtnBg: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
     keyBtnBorder: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
   }
@@ -176,17 +167,12 @@ export default function App() {
     const processed = await Promise.all(arr.map(async (f) => ({
       url: URL.createObjectURL(f), base64: await toBase64.current(f), mediaType: f.type || 'image/jpeg',
     })))
-    setImages((prev) => [...prev, ...processed].slice(0, 5))
+    setImages((prev) => (isDemo ? [] : prev).concat(processed).slice(0, 5))
+    if (isDemo) { setAnalysis(null); setError(null); setDoorDir(''); setRoomType(''); setGoal('') }
     setIsDemo(false)
-  }, [])
+  }, [isDemo])
 
   const removeImage = (idx) => { setImages((prev) => prev.filter((_, i) => i !== idx)); setIsDemo(false) }
-
-  const loadDemo = () => {
-    setImages(DEMO.images.map((img) => ({ url: img.url, base64: null, mediaType: 'image/jpeg', demoLabel: img.label })))
-    setDoorDir(DEMO.doorDir); setRoomType(DEMO.roomType); setGoal(DEMO.goal)
-    setAnalysis(DEMO.analysis); setError(null); setIsDemo(true)
-  }
 
   const reset = () => {
     setAnalysis(null); setImages([]); setDoorDir(''); setRoomType(''); setGoal(''); setError(null); setIsDemo(false)
@@ -291,9 +277,6 @@ export default function App() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <button onClick={() => setShowKeyInput(true)} style={{ background: c.keyBtnBg, border: `1px solid ${c.keyBtnBorder}`, borderRadius: 10, padding: '6px 11px', fontSize: 12, color: c.keyBtnColor, cursor: 'pointer', touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', fontFamily: "inherit" }}>
-            {apiKey ? 'Key set' : 'API key'}
-          </button>
           <button onClick={toggleDark} aria-label="Toggle dark mode" style={{ width: 36, height: 36, borderRadius: 10, background: c.keyBtnBg, border: `1px solid ${c.keyBtnBorder}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c.textSub} strokeWidth="2" strokeLinecap="round">
               {dark
@@ -324,22 +307,6 @@ export default function App() {
 
       {/* Content */}
       <div className="fs-container" style={{ position: 'relative', zIndex: 1, padding: '20px 16px', maxWidth: 480, margin: '0 auto', paddingBottom: 'max(32px, env(safe-area-inset-bottom))' }}>
-
-        {/* Demo banner */}
-        {!analysis && images.length === 0 && (
-          <div style={{ ...glass, padding: '16px 20px', marginBottom: 16, animation: 'fadeSlide 0.45s ease' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
-              <div style={{ flexShrink: 0, marginTop: 2 }}><SketchLeaf dark={dark} /></div>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: c.text, marginBottom: 4, fontFamily: "Georgia, serif" }}>New here?</div>
-                <div style={{ fontSize: 13, color: c.textMid, marginBottom: 12, lineHeight: 1.5 }}>See a full analysis example — no photo or API key needed.</div>
-                <button onClick={loadDemo} style={{ padding: '10px 20px', borderRadius: 10, border: `1px solid ${c.demoBorder}`, background: c.demoBg, color: '#0071e3', fontSize: 13, fontWeight: 600, cursor: 'pointer', touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', fontFamily: 'inherit' }}>
-                  View Demo Analysis
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Demo badge */}
         {isDemo && (

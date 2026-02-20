@@ -40,3 +40,14 @@ Model: `claude-sonnet-4-20250514` with vision. Returns JSON-only feng shui analy
 ## Icons
 
 Run `node generate-icons.mjs` to regenerate public/*.png icons.
+
+## CI — CRITICAL
+
+GitHub Actions (`deploy.yml`) runs `npm test` before every build. Tests MUST pass before pushing.
+Always run `npm test` locally first. A failing test blocks the entire CI pipeline.
+
+## Code Quality Rules (enforce on every commit)
+
+1. **GitHub tests must pass** — run `npm test` locally before every push
+2. **No gradients, no AI UI** — solid colors only, no linear/radial-gradient, no blobs, no purple tints
+3. **Remove dead code** — delete unused variables, components, and state on every pass

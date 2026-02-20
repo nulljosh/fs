@@ -142,6 +142,24 @@ describe('addImages logic (slice to 5)', () => {
     const result = [...existing, ...incoming].slice(0, 5)
     expect(result).toHaveLength(3)
   })
+
+  it('replaces all images when in demo mode', () => {
+    const isDemo = true
+    const demoImages = [{ url: 'demo1' }, { url: 'demo2' }, { url: 'demo3' }]
+    const incoming = [{ url: 'real1' }]
+    const result = (isDemo ? [] : demoImages).concat(incoming).slice(0, 5)
+    expect(result).toHaveLength(1)
+    expect(result[0].url).toBe('real1')
+  })
+
+  it('appends to existing when not in demo mode', () => {
+    const isDemo = false
+    const existing = [{ url: 'img1' }, { url: 'img2' }]
+    const incoming = [{ url: 'img3' }]
+    const result = (isDemo ? [] : existing).concat(incoming).slice(0, 5)
+    expect(result).toHaveLength(3)
+    expect(result[0].url).toBe('img1')
+  })
 })
 
 describe('analyze error path', () => {
