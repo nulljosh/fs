@@ -22,8 +22,8 @@ vercel --prod    # deploy to prod
 ## Design System
 
 Apple Liquid Glass: `backdrop-filter: blur(24px) saturate(180%)`, frosted glass cards,
-`-apple-system` font, gradient accent `linear-gradient(135deg, rgba(100,160,255,0.9), rgba(160,100,255,0.9))`,
-animated background blobs.
+`-apple-system` font, solid `#0071e3` accent.
+NO gradients — background is solid, no blobs, no linear/radial-gradient anywhere.
 
 ## API
 

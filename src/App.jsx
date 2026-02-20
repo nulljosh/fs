@@ -16,10 +16,14 @@ const GOALS = ['Attract Wealth', 'Improve Relationships', 'Boost Career', 'Enhan
 
 const DEMO = {
   doorDir: 'Southeast', roomType: 'Living Room', goal: 'Attract Wealth',
-  images: [{ url: '/demo/living-room.jpg', label: 'Living Room' }],
+  images: [
+    { url: '/demo/living-room.jpg', label: 'Living Room' },
+    { url: '/demo/bedroom.jpg', label: 'Bedroom' },
+    { url: '/demo/office.jpg', label: 'Office' },
+  ],
   analysis: {
     overallScore: 72, energyFlow: 'Moderate', commanding_position: 'Partial',
-    summary: 'This living room has good natural light and open circulation, which supports positive chi flow. The sofa placement slightly breaks commanding position principles, and the cluttered corner near the window is creating stagnant energy. With a few adjustments, this space can be optimized for wealth attraction.',
+    summary: 'Across all three rooms, chi flow is moderate — the living room has strong natural light and open circulation, but the bedroom lacks commanding position and the office has stagnant energy in the wealth corner. The Southeast entrance activates Wood energy, which favors growth when properly supported across the whole space.',
     issues: [
       { severity: 'moderate', title: 'Sofa faces away from door', description: 'The main seating does not have a clear sightline to the entrance, reducing your sense of security and command in the space.', fix: 'Angle or reposition the sofa so the primary seat faces the door while still maintaining conversation flow.' },
       { severity: 'minor', title: 'Clutter in Wealth corner', description: 'The Southeast corner (your Wealth & Prosperity bagua area) appears cluttered, blocking chi from accumulating there.', fix: 'Clear the Southeast corner and place a jade plant or purple amethyst crystal to activate wealth chi.' },
@@ -120,12 +124,7 @@ export default function App() {
 
   // Colors
   const c = {
-    bg: dark
-      ? 'linear-gradient(160deg, #12101a 0%, #181222 35%, #10181a 70%, #181510 100%)'
-      : 'linear-gradient(160deg, #f8f3ec 0%, #f0ebe0 35%, #ede8f5 70%, #edf5ec 100%)',
-    blobA: dark ? 'radial-gradient(circle, rgba(80,60,180,0.4), transparent 70%)' : 'radial-gradient(circle, rgba(200,180,100,0.25), transparent 70%)',
-    blobB: dark ? 'radial-gradient(circle, rgba(120,60,200,0.3), transparent 70%)' : 'radial-gradient(circle, rgba(180,140,220,0.2), transparent 70%)',
-    blobC: dark ? 'radial-gradient(circle, rgba(40,120,100,0.25), transparent 70%)' : 'radial-gradient(circle, rgba(120,200,140,0.2), transparent 70%)',
+    bg: dark ? '#12101a' : '#f8f3ec',
     glass: dark
       ? { background: 'rgba(255,255,255,0.055)', backdropFilter: 'blur(24px) saturate(150%)', WebkitBackdropFilter: 'blur(24px) saturate(150%)', border: '1px solid rgba(255,255,255,0.09)', boxShadow: '0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06)' }
       : { background: 'rgba(255,250,240,0.5)', backdropFilter: 'blur(24px) saturate(160%)', WebkitBackdropFilter: 'blur(24px) saturate(160%)', border: '1px solid rgba(255,255,255,0.75)', boxShadow: '0 8px 32px rgba(120,100,60,0.08), inset 0 1px 0 rgba(255,255,255,0.9)' },
@@ -135,7 +134,7 @@ export default function App() {
     input: dark
       ? { background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(240,235,220,0.85)' }
       : { background: 'rgba(255,250,235,0.7)', border: '1px solid rgba(200,180,120,0.3)', color: 'rgba(42,32,15,0.85)' },
-    accent: 'linear-gradient(135deg, rgba(100,160,255,0.9), rgba(160,100,255,0.9))',
+    accent: '#0071e3',
     headerBg: dark ? 'rgba(18,16,26,0.8)' : 'rgba(248,243,236,0.8)',
     label: dark ? 'rgba(240,235,220,0.3)' : 'rgba(42,32,15,0.3)',
     demoBg: dark ? 'rgba(100,80,200,0.1)' : 'rgba(160,120,60,0.07)',
@@ -262,22 +261,25 @@ export default function App() {
   return (
     <div style={{ minHeight: '100dvh', background: c.bg, backgroundImage: paperDataUrl, fontFamily: "-apple-system, 'Helvetica Neue', Georgia, sans-serif", overscrollBehavior: 'none', position: 'relative', overflow: 'hidden', color: c.text }}>
       <style>{`
-        @keyframes blobFloat { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(30px,-20px) scale(1.05)} 66%{transform:translate(-20px,15px) scale(0.97)} }
         @keyframes spin { to{transform:rotate(360deg)} }
         @keyframes fadeSlide { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
         *{box-sizing:border-box}
         body{margin:0;padding:0}
         select option{background:${dark ? '#1e1a2e' : '#faf6ee'};color:${dark ? '#f0ebe0' : '#2a2010'}}
+        @media (min-width: 768px) {
+          .fs-container { max-width: 600px; padding: 28px 24px; }
+        }
+        @media (min-width: 1024px) {
+          .fs-container { max-width: 720px; padding: 36px 32px; }
+          .fs-results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+          .fs-score-card { grid-column: 1 / -1; }
+          .fs-summary { grid-column: 1 / -1; }
+          .fs-reset { grid-column: 1 / -1; }
+        }
+        @media (min-width: 1280px) {
+          .fs-container { max-width: 900px; }
+        }
       `}</style>
-
-      {/* Blobs */}
-      {[
-        { top: '-15%', left: '-10%', w: 420, h: 420, bg: c.blobA, delay: '0s' },
-        { top: '40%', right: '-15%', w: 360, h: 360, bg: c.blobB, delay: '-3s' },
-        { bottom: '-10%', left: '20%', w: 300, h: 300, bg: c.blobC, delay: '-6s' },
-      ].map((b, i) => (
-        <div key={i} style={{ position: 'fixed', top: b.top, left: b.left, right: b.right, bottom: b.bottom, width: b.w, height: b.h, background: b.bg, filter: 'blur(70px)', animation: `blobFloat 9s ease-in-out ${b.delay} infinite`, pointerEvents: 'none', zIndex: 0 }} />
-      ))}
 
       {/* Header */}
       <div style={{ position: 'sticky', top: 0, zIndex: 10, padding: '14px 20px', paddingTop: 'max(14px, env(safe-area-inset-top))', background: c.headerBg, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: `1px solid ${c.divider}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -321,7 +323,7 @@ export default function App() {
       )}
 
       {/* Content */}
-      <div style={{ position: 'relative', zIndex: 1, padding: '20px 16px', maxWidth: 480, margin: '0 auto', paddingBottom: 'max(32px, env(safe-area-inset-bottom))' }}>
+      <div className="fs-container" style={{ position: 'relative', zIndex: 1, padding: '20px 16px', maxWidth: 480, margin: '0 auto', paddingBottom: 'max(32px, env(safe-area-inset-bottom))' }}>
 
         {/* Demo banner */}
         {!analysis && images.length === 0 && (
@@ -418,10 +420,10 @@ export default function App() {
 
         {/* Results */}
         {analysis && (
-          <div style={{ display: 'grid', gap: 14, animation: 'fadeSlide 0.4s ease' }}>
+          <div className="fs-results-grid" style={{ display: 'grid', gap: 14, animation: 'fadeSlide 0.4s ease' }}>
 
             {/* Score card */}
-            <div style={{ ...glass, padding: 28, textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+            <div className="fs-score-card" style={{ ...glass, padding: 28, textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
               <SketchChiFlow dark={dark} score={analysis.overallScore}/>
               <div style={{ position: 'relative' }}>
                 <div style={{ fontSize: 72, fontWeight: 800, color: analysis.overallScore >= 70 ? '#22c55e' : analysis.overallScore >= 45 ? '#f59e0b' : '#ef4444', lineHeight: 1, marginBottom: 4, fontFamily: "Georgia, serif" }}>{analysis.overallScore}</div>
@@ -441,7 +443,7 @@ export default function App() {
             </div>
 
             {/* Summary */}
-            <div style={{ ...glass, padding: 20 }}>
+            <div className="fs-summary" style={{ ...glass, padding: 20 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: c.label, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Reading</div>
               <div style={{ fontSize: 15, color: c.textMid, lineHeight: 1.6, fontStyle: 'italic', fontFamily: "Georgia, serif" }}>{analysis.summary}</div>
             </div>
@@ -498,7 +500,7 @@ export default function App() {
               </div>
             )}
 
-            <button onClick={reset} style={{ width: '100%', padding: '15px 0', borderRadius: 14, border: `1px solid ${c.btnSecBorder}`, background: c.btnSecBg, color: c.btnSecText, fontSize: 15, cursor: 'pointer', touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', fontFamily: 'inherit' }}>
+            <button className="fs-reset" onClick={reset} style={{ width: '100%', padding: '15px 0', borderRadius: 14, border: `1px solid ${c.btnSecBorder}`, background: c.btnSecBg, color: c.btnSecText, fontSize: 15, cursor: 'pointer', touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', fontFamily: 'inherit' }}>
               Analyze Another Room
             </button>
           </div>
