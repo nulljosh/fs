@@ -259,7 +259,7 @@ export default function App() {
   const severityColor = { critical: '#ef4444', moderate: '#f59e0b', minor: '#22c55e' }
 
   return (
-    <div style={{ minHeight: '100dvh', background: c.bg, backgroundImage: paperDataUrl, fontFamily: "-apple-system, 'Helvetica Neue', Georgia, sans-serif", overscrollBehavior: 'none', position: 'relative', overflow: 'hidden', color: c.text }}>
+    <div style={{ minHeight: '100dvh', background: c.bg, backgroundImage: paperDataUrl, fontFamily: "-apple-system, 'Helvetica Neue', Georgia, sans-serif", overscrollBehavior: 'none', color: c.text }}>
       <style>{`
         @keyframes spin { to{transform:rotate(360deg)} }
         @keyframes fadeSlide { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
@@ -408,7 +408,7 @@ export default function App() {
               <span style={{ width: 18, height: 18, border: '2.5px solid rgba(255,255,255,0.35)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }}/>
               Reading the chi...
             </span>
-          ) : isDemo ? 'Re-analyze with API' : 'Analyze Room'}
+          ) : isDemo ? 'Analyze your own room' : 'Analyze Room'}
         </button>
 
         {/* Error */}
