@@ -8,8 +8,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'Feng Shui Analyzer',
-        short_name: 'Chi Scan',
+        name: 'Chi',
+        short_name: 'Chi',
         theme_color: '#dfe9f3',
         background_color: '#f0f4f8',
         display: 'standalone',
