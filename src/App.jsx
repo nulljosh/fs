@@ -49,10 +49,12 @@ export default function App() {
   const handleImage = useCallback((e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { setError('File too large (max 10MB)'); return; }
 
     setResults(null);
     setError(null);
 
+    if (preview) URL.revokeObjectURL(preview);
     const url = URL.createObjectURL(file);
     setPreview(url);
     setImage(file);

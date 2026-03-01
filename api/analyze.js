@@ -1,4 +1,6 @@
 function hexToRgb(hex) {
+  const match = hex.match(/^#?([0-9a-fA-F]{6})$/);
+  if (!match) return { r: 0, g: 0, b: 0 };
   const clean = hex.replace('#', '');
   return {
     r: parseInt(clean.substring(0, 2), 16),
@@ -97,6 +99,10 @@ export default function handler(req, res) {
 
   if (!colors || !Array.isArray(colors) || !direction) {
     return res.status(400).json({ error: 'Missing colors array or direction' });
+  }
+  const VALID_DIRECTIONS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+  if (!VALID_DIRECTIONS.includes(direction)) {
+    return res.status(400).json({ error: 'Invalid direction' });
   }
 
   // Map each color to an element
