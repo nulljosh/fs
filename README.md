@@ -1,4 +1,7 @@
-# Chi
+<div align="center">
+  <img src="icon.svg" width="120" />
+  <h1>Chi</h1>
+</div>
 
 Feng Shui room analyzer PWA. Upload room photos, get Five Elements scoring.
 
