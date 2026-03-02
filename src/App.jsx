@@ -1,7 +1,23 @@
 import { useState, useRef, useCallback } from 'react';
 import './App.css';
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const DIRECTIONS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+
+const ELEMENT_ICONS = {
+  Wood: '\u{1F332}',
+  Fire: '\u{1F525}',
+  Earth: '\u{26F0}',
+  Metal: '\u{2699}',
+  Water: '\u{1F4A7}'
+};
+
+function scoreColor(score) {
+  if (score >= 80) return '#4a6741';
+  if (score >= 60) return '#6b8f5e';
+  if (score >= 40) return '#c4a34d';
+  return '#a85432';
+}
 
 function extractColors(canvas, img) {
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -49,12 +65,20 @@ export default function App() {
   const handleImage = useCallback((e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) { setError('File too large (max 10MB)'); return; }
+
+    if (file.size > MAX_FILE_SIZE) {
+      setError('File too large (max 10MB)');
+      return;
+    }
 
     setResults(null);
     setError(null);
 
-    if (preview) URL.revokeObjectURL(preview);
+    setPreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+
     const url = URL.createObjectURL(file);
     setPreview(url);
     setImage(file);
@@ -89,21 +113,6 @@ export default function App() {
       setLoading(false);
     }
   }, [colors, direction]);
-
-  const scoreColor = (score) => {
-    if (score >= 80) return '#4a6741';
-    if (score >= 60) return '#6b8f5e';
-    if (score >= 40) return '#c4a34d';
-    return '#a85432';
-  };
-
-  const elementIcons = {
-    Wood: '\u{1F332}',
-    Fire: '\u{1F525}',
-    Earth: '\u{26F0}',
-    Metal: '\u{2699}',
-    Water: '\u{1F4A7}'
-  };
 
   return (
     <div className="app">
@@ -210,7 +219,7 @@ export default function App() {
             <div className="elements-grid">
               {Object.entries(results.elements).map(([name, pct]) => (
                 <div key={name} className="element-item">
-                  <span className="element-icon">{elementIcons[name]}</span>
+                  <span className="element-icon">{ELEMENT_ICONS[name]}</span>
                   <span className="element-name">{name}</span>
                   <div className="element-bar-bg">
                     <div

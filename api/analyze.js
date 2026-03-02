@@ -1,11 +1,11 @@
 function hexToRgb(hex) {
   const match = hex.match(/^#?([0-9a-fA-F]{6})$/);
   if (!match) return { r: 0, g: 0, b: 0 };
-  const clean = hex.replace('#', '');
+  const digits = match[1];
   return {
-    r: parseInt(clean.substring(0, 2), 16),
-    g: parseInt(clean.substring(2, 4), 16),
-    b: parseInt(clean.substring(4, 6), 16)
+    r: parseInt(digits.substring(0, 2), 16),
+    g: parseInt(digits.substring(2, 4), 16),
+    b: parseInt(digits.substring(4, 6), 16)
   };
 }
 
@@ -100,8 +100,7 @@ export default function handler(req, res) {
   if (!colors || !Array.isArray(colors) || !direction) {
     return res.status(400).json({ error: 'Missing colors array or direction' });
   }
-  const VALID_DIRECTIONS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-  if (!VALID_DIRECTIONS.includes(direction)) {
+  if (!DIRECTION_ELEMENTS[direction]) {
     return res.status(400).json({ error: 'Invalid direction' });
   }
 
@@ -110,9 +109,9 @@ export default function handler(req, res) {
 
   // Count elements
   const counts = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
-  colorElements.forEach((el) => {
+  for (const el of colorElements) {
     counts[el]++;
-  });
+  }
 
   // Percentages
   const total = colors.length;
@@ -138,26 +137,19 @@ export default function handler(req, res) {
   score += presentElements.length * 5;
 
   // Productive cycle bonus
-  let productiveFound = false;
-  for (const el of presentElements) {
-    if (presentElements.includes(PRODUCTIVE[el])) {
-      productiveFound = true;
-      break;
-    }
-  }
-  if (productiveFound) score += 10;
+  const hasProductiveCycle = presentElements.some(
+    (el) => presentElements.includes(PRODUCTIVE[el])
+  );
+  if (hasProductiveCycle) score += 10;
 
   // Destructive cycle penalty
-  let destructiveFound = false;
-  let destructivePair = null;
-  for (const el of presentElements) {
-    if (presentElements.includes(DESTRUCTIVE[el])) {
-      destructiveFound = true;
-      destructivePair = [el, DESTRUCTIVE[el]];
-      break;
-    }
-  }
-  if (destructiveFound) score -= 10;
+  const destructiveSource = presentElements.find(
+    (el) => presentElements.includes(DESTRUCTIVE[el])
+  );
+  const destructivePair = destructiveSource
+    ? [destructiveSource, DESTRUCTIVE[destructiveSource]]
+    : null;
+  if (destructivePair) score -= 10;
 
   // Clamp
   score = Math.max(0, Math.min(100, score));
