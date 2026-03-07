@@ -3,6 +3,8 @@
   <h1>Chi</h1>
 </div>
 
+![version](https://img.shields.io/badge/version-v1.0.0-blue)
+
 Feng Shui room analyzer PWA. Upload room photos, get Five Elements scoring.
 
 GitHub: https://github.com/nulljosh/chi
